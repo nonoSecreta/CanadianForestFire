@@ -30,6 +30,13 @@ def parse_args():
         help="Number of locations to plot in the scatter plot",
     )
     parser.add_argument(
+        "--cause-sample-size",
+        type=int,
+        default=5000,
+        help="Locations per cause for cause-based scatter plots",
+    )
+    parser.add_argument(
+
         "--no-plots",
         action="store_true",
         help="Skip generating image files",
@@ -93,6 +100,36 @@ def plot_sample_locations(df: pd.DataFrame, n: int = 10000) -> None:
     plt.close()
 
 
+def plot_yearly_by_cause(df: pd.DataFrame) -> None:
+    """Save line chart of yearly fire counts for each cause."""
+    by_year = df.groupby(["YEAR", "CAUSE"]).size().unstack(fill_value=0)
+    plt.figure(figsize=(10, 4))
+    by_year.plot()
+    plt.xlabel("Year")
+    plt.ylabel("Number of Fires")
+    plt.title("Fires per Year by Cause")
+    plt.tight_layout()
+    plt.savefig("fires_by_cause_year.png")
+    plt.close()
+
+
+def plot_locations_by_cause(df: pd.DataFrame, n: int = 5000) -> None:
+    """Save scatter plots of fire locations for each cause."""
+    for cause, group in df.groupby("CAUSE"):
+        sample = group[["LONGITUDE", "LATITUDE"]].sample(
+            min(n, len(group)), random_state=42
+        )
+        plt.figure(figsize=(6, 6))
+        plt.scatter(sample["LONGITUDE"], sample["LATITUDE"], s=1, alpha=0.3)
+        plt.xlabel("Longitude")
+        plt.ylabel("Latitude")
+        plt.title(f"Locations - {cause}")
+        plt.tight_layout()
+        fname = f"fire_locations_{cause}.png".replace("/", "_")
+        plt.savefig(fname)
+        plt.close()
+
+
 def main() -> None:
     args = parse_args()
     data_path = Path(args.file)
@@ -102,6 +139,9 @@ def main() -> None:
         plot_fires_per_year(df)
         plot_causes(df)
         plot_sample_locations(df, n=args.sample_size)
+        plot_yearly_by_cause(df)
+        plot_locations_by_cause(df, n=args.cause_sample_size)
+
 
 
 if __name__ == '__main__':
