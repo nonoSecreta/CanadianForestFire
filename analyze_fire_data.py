@@ -36,6 +36,7 @@ def parse_args():
         help="Locations per cause for cause-based scatter plots",
     )
     parser.add_argument(
+
         "--no-plots",
         action="store_true",
         help="Skip generating image files",
@@ -140,6 +141,7 @@ def main() -> None:
         plot_sample_locations(df, n=args.sample_size)
         plot_yearly_by_cause(df)
         plot_locations_by_cause(df, n=args.cause_sample_size)
+
 
 
 if __name__ == '__main__':
